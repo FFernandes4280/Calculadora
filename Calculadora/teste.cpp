@@ -1,117 +1,85 @@
-#include <LiquidCrystal.h>
 #include <iostream>
 #include <stack>
 #include <queue>
+#include <cstring>
 
 using namespace std;
 
-LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
-char display[16];
-int i = 0;
+char display[] = "2+3*4";
 
-void reset(int clear)
-{
-  i = 0;
-  for (int clear = 0; clear < 16; clear++) {
-    display[clear] = ' ';  
-  }
-}
-int isNumber(char key)
-{
-  return key >= '0' && key <= '9' || key == '.';
-}
 bool isOperator(char key)
 {
-  return (key == '+' || key == '-' || key == '*' || key == '/');
-}
-int Precedence(char key) {
-  if (key == '+' || key == '-')
+  if(key == '+' || key == '-' )
+    return 0;
+  if(key == '*' || key == '/')
     return 1;
-  else if (key == '*' || key == '/')
-    return 2;
-  return 0;
+  return 2;
 }
 
-queue<char> shuntingYard(const string& infix) {
-  queue<char> outputQueue;
-  stack<char> operatorStack;
-
-  for (char c : infix) {
-    if (isalnum(c))// If the character is a number or variable
-      outputQueue.push(c);
-    else if (isOperator(c)) { // If the character is an operator
-            while (!operatorStack.empty() && getPrecedence(operatorStack.top()) >= getPrecedence(c)) {
-                outputQueue.push(operatorStack.top());
-                operatorStack.pop();
-            }
-            operatorStack.push(c);
-        } else if (c == '(') { // If the character is an opening parenthesis
-            operatorStack.push(c);
-        } else if (c == ')') { // If the character is a closing parenthesis
-            while (!operatorStack.empty() && operatorStack.top() != '(') {
-                outputQueue.push(operatorStack.top());
-                operatorStack.pop();
-            }
-            operatorStack.pop(); // Pop the '('
-        }
-    }
-
-    // Pop remaining operators from the stack to the output queue
-    while (!operatorStack.empty()) {
-        outputQueue.push(operatorStack.top());
-        operatorStack.pop();
-    }
-
-    return outputQueue;
+bool isNumber(char c) {
+    return c >= '0' && c <= '9';
 }
-
-void setup()
+ 
+void toposfix(char posfix[])
 {
-  Serial.begin(9600);
-  
-  lcd.begin(16, 2);		//inicializa
-  lcd.setCursor(0, 0);	//coloca o cursor em (0, 0)
-  lcd.clear();			//limpa a tela
-}
+  int start = 0;
+  char op;
+  char num;
+  stack<char> pilha;
+  queue<char> fila;
 
-void loop()
-{
-  int num;
-  if(Serial.available())
+  while(display[start] != ' ')
   {
-  	char key = Serial.read();
-    if(key == '=')
+    if(isOperator(display[start]))
     {
-      num = read(0);
-      lcd.clear();
-      lcd.setCursor(0,0);
-      reset(0);
-      lcd.print(num);
-      while(num>0)
-  		{	
-			for (int j = i; j > 0; j--)
-            	display[j] = display[j - 1];
-        	
-        	Serial.println(num);
-    		display[0] = num % 10 + '0';
-        	num = num / 10;
-    		i++;
-  		}
-    }
-    else
-    {
-      if(key == 'C')
-      {
-        reset(0);
-        lcd.clear();
-        lcd.setCursor(0,0);
-      }
+      if(pilha.empty())
+        pilha.push(display[start]);
       else
       {
-        display[i]= key;
-        i++;
-  	    lcd.write(key);
+        if(isOperator(pilha.top()) < isOperator(display[start]))
+          pilha.push(display[start]);
+        else
+        {
+          while(!pilha.empty() && isOperator(pilha.top()) >= isOperator(display[start]))
+          {
+            op = pilha.top();
+            pilha.pop();
+            fila.push(op);
+          }
+          pilha.push(display[start]);
+        }
       }
     }
+    else if(isNumber(display[start]))
+    {
+      while(isNumber(display[start]))
+      {
+        num = num * 10 + (display[start] - '0');
+        start++;
+      }
+      fila.push(num);
+    }
+    else if(display[start] == '(')
+      pilha.push(display[start]);
+    else if(display[start] == ')')
+    {
+      while(pilha.top() != '(')
+      {
+        op = pilha.top();
+        pilha.pop();
+        fila.push(op);
+      }
+      pilha.pop();
+    }
   }
+}
+
+int main() {
+    //print the display here
+    printf("Display: %s\n", display);
+    char test[] = "2+3*4";
+    toposfix(test);
+    // Check the result here
+    printf("Display: %s\n", test);
+    return 0;
 }
