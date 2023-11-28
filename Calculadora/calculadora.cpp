@@ -22,58 +22,6 @@ bool isOperator(char key)
   return 2;
 }
 
-void toposfix(char posfix[])
-{
-  int start = 0;
-  char op;
-  char num;
-  stack<char> pilha;
-
-  while(start < 16)
-  {
-    if(isOperator(display[start]))
-    {
-      if(pilha.empty())
-        pilha.push(display[start]);
-      else
-      {
-        if(isOperator(pilha.top()) < isOperator(display[start]))
-          pilha.push(display[start]);
-        else
-        {
-          while(!pilha.empty() && isOperator(pilha.top()) >= isOperator(display[start]))
-          {
-            op = pilha.top();
-            pilha.pop();
-            fila.push(op);
-          }
-          pilha.push(display[start]);
-        }
-      }
-    }
-    else if(isNumber(display[start]))
-    {
-      while(isNumber(display[start]))
-      {
-        num = num * 10 + (display[start] - '0');
-        start++;
-      }
-      fila.push(num);
-    }
-    else if(display[start] == '(')
-      pilha.push(display[start]);
-    else if(display[start] == ')')
-    {
-      while(pilha.top() != '(')
-      {
-        op = pilha.top();
-        pilha.pop();
-        fila.push(op);
-      }
-      pilha.pop();
-    }
-  }
-}
 
 double solve()
 {

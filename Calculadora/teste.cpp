@@ -5,32 +5,33 @@
 
 using namespace std;
 
-char display[] = "2+3*4";
+char display[] = "2+38*4.1 ";
 
-bool isOperator(char key)
+int isOperator(char key)
 {
   if(key == '+' || key == '-' )
-    return 0;
-  if(key == '*' || key == '/')
     return 1;
-  return 2;
+  if(key == '*' || key == '/')
+    return 2;
+  return 0;
 }
 
 bool isNumber(char c) {
     return c >= '0' && c <= '9';
 }
  
-void toposfix(char posfix[])
+void toposfix(stack<char> pilha, queue<double> fila)
 {
   int start = 0;
   char op;
-  char num;
-  stack<char> pilha;
-  queue<char> fila;
+  double num = 0;
+  float decimalPlace = 0.1;
+  bool isDecimal = false;
+  isDecimal = false;
 
   while(display[start] != ' ')
   {
-    if(isOperator(display[start]))
+    if(isOperator(display[start]))//entra se for operador
     {
       if(pilha.empty())
         pilha.push(display[start]);
@@ -49,37 +50,46 @@ void toposfix(char posfix[])
           pilha.push(display[start]);
         }
       }
+      start++;
     }
-    else if(isNumber(display[start]))
+    else //entra se for numero
     {
-      while(isNumber(display[start]))
-      {
-        num = num * 10 + (display[start] - '0');
+      num = 0;
+      while (isNumber(display[start])) {
+        if (display[start] == '.') {
+          isDecimal = true;
+          start++;
+          continue;
+        }
+        if (!isDecimal) {
+          num = num * 10 + (display[start] - '0');
+        } else {
+          num = num + (display[start] - '0') * decimalPlace;
+          decimalPlace *= 0.1;
+        }
         start++;
       }
       fila.push(num);
     }
-    else if(display[start] == '(')
-      pilha.push(display[start]);
-    else if(display[start] == ')')
-    {
-      while(pilha.top() != '(')
-      {
-        op = pilha.top();
-        pilha.pop();
-        fila.push(op);
-      }
-      pilha.pop();
-    }
+  }
+
+  while(!fila.empty())
+  {
+    printf("%f ", fila.front());
+    fila.pop();
+  }
+  printf("\n");
+  while (!pilha.empty()) {
+    printf("%c ", pilha.top());
+    pilha.pop();
   }
 }
 
 int main() {
     //print the display here
     printf("Display: %s\n", display);
-    char test[] = "2+3*4";
-    toposfix(test);
-    // Check the result here
-    printf("Display: %s\n", test);
+    stack<char> pilha;
+    queue<double> fila;
+    toposfix(pilha, fila);
     return 0;
 }
