@@ -25,7 +25,6 @@ bool isOperator(char key)
 
 double solve()
 {
-  char posfix[16];
   int start = 0;
   double numA, numB;
   char op;

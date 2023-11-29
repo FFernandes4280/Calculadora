@@ -5,7 +5,7 @@
 
 using namespace std;
 
-char display[] = "2+38*4.1 ";
+char display[] = "10.8/2.4 ";
 
 int isOperator(char key)
 {
@@ -17,21 +17,21 @@ int isOperator(char key)
 }
 
 bool isNumber(char c) {
-    return c >= '0' && c <= '9';
+    return c >= '0' && c <= '9' || c == '.';
 }
  
-void toposfix(stack<char> pilha, queue<double> fila)
+void toposfix(stack<char> &pilha, stack<double> &fila)
 {
   int start = 0;
   char op;
   double num = 0;
   float decimalPlace = 0.1;
   bool isDecimal = false;
-  isDecimal = false;
+  bool isNegative = false;
 
   while(display[start] != ' ')
   {
-    if(isOperator(display[start]))//entra se for operador
+    if(isOperator(display[start]) && isNumber(display[start-1]))//entra se for operador
     {
       if(pilha.empty())
         pilha.push(display[start]);
@@ -55,15 +55,30 @@ void toposfix(stack<char> pilha, queue<double> fila)
     else //entra se for numero
     {
       num = 0;
+      isDecimal = false;
+      isNegative = false;
+      decimalPlace = 0.1;
+      
+      if (display[start] == '-')
+      {
+        isNegative = true;
+        start++;
+      }
+
       while (isNumber(display[start])) {
-        if (display[start] == '.') {
+        if (display[start] == '.')
+        {
           isDecimal = true;
           start++;
-          continue;
         }
-        if (!isDecimal) {
+
+        if (!isDecimal && !isNegative)
           num = num * 10 + (display[start] - '0');
-        } else {
+        
+        else if (isNegative) {
+          num = num * 10 + (display[start] - '0');
+          num = num * -1;
+        }else if (isDecimal) {
           num = num + (display[start] - '0') * decimalPlace;
           decimalPlace *= 0.1;
         }
@@ -72,24 +87,40 @@ void toposfix(stack<char> pilha, queue<double> fila)
       fila.push(num);
     }
   }
+}
 
-  while(!fila.empty())
+double solve()
+{
+  int start = 0;
+  double numA, numB;
+  numA = numB = 0;
+  char op;
+  stack<char> operand;
+  stack<double> number;
+  toposfix(operand, number);
+  numA = number.top();
+  number.pop();
+  while(!number.empty() && !operand.empty())
   {
-    printf("%f ", fila.front());
-    fila.pop();
+    numB = number.top();
+    number.pop();
+    op = operand.top();
+    operand.pop();
+    if(op == '+')
+      numA = numA + numB;
+    else if(op == '-')
+      numA = numA - numB;
+    else if(op == '*')
+      numA = numA * numB;
+    else if(op == '/')
+      numA = numB / numA;
   }
-  printf("\n");
-  while (!pilha.empty()) {
-    printf("%c ", pilha.top());
-    pilha.pop();
-  }
+  return numA;
 }
 
 int main() {
     //print the display here
     printf("Display: %s\n", display);
-    stack<char> pilha;
-    queue<double> fila;
-    toposfix(pilha, fila);
+    printf("%f\n", solve());
     return 0;
 }
