@@ -1,11 +1,48 @@
-#include <iostream>
-#include <stack>
-#include <queue>
-#include <cstring>
+#include <iostream> //Inutil, uso serial
 
 using namespace std;
 
-char display[] = "10.8/2.4 ";
+struct fila
+{
+  double num;
+  char op;
+}typedef Fila;
+
+char stack[16];
+Fila queue[16];
+int stackIndex = 0;
+int queueFront = 0;
+int queueRear = 0;
+
+void print(){
+  printf("\n");
+ for (int i = queueFront; i < queueRear; i++) {
+    printf("Elemento%d-> Num:%f Opr:%c",i, queue[i].num, queue[i].op);
+    printf("\n");
+  }
+  
+}
+void push(char op) {
+  stack[stackIndex++] = op;
+}
+
+char pop() {
+  return stack[--stackIndex];
+}
+
+void enqueue(double value, char op) {
+  queue[queueRear++].num = value;
+  queue[queueRear++].op = op;
+}
+
+int dequeue() {
+  if (queue[queueFront].op == ' ')
+    return queue[queueFront++].num;  
+  else
+    return queue[queueFront++].op;
+}
+
+char display[] = "2+3+5 ";
 
 int isOperator(char key)
 {
@@ -20,7 +57,7 @@ bool isNumber(char c) {
     return c >= '0' && c <= '9' || c == '.';
 }
  
-void toposfix(stack<char> &pilha, stack<double> &fila)
+void toposfix() //stack e queue são variaveis globais
 {
   int start = 0;
   char op;
@@ -33,24 +70,23 @@ void toposfix(stack<char> &pilha, stack<double> &fila)
   {
     if(isOperator(display[start]) && isNumber(display[start-1]))//entra se for operador
     {
-      if(pilha.empty())
-        pilha.push(display[start]);
+      if(stackIndex == 0)
+        push(display[start]);
+    
       else
       {
-        if(isOperator(pilha.top()) < isOperator(display[start]))
-          pilha.push(display[start]);
+        if(isOperator(stack[stackIndex]) < isOperator(display[start]))
+          push(display[start]);
         else
         {
-          while(!pilha.empty() && isOperator(pilha.top()) >= isOperator(display[start]))
-          {
-            op = pilha.top();
-            pilha.pop();
-            fila.push(op);
-          }
-          pilha.push(display[start]);
+          while(!stackIndex && isOperator(stack[stackIndex]) >= isOperator(display[start]))
+            enqueue(0, pop());
+          
+          push(display[start]);
         }
       }
       start++;
+      print();
     }
     else //entra se for numero
     {
@@ -84,9 +120,13 @@ void toposfix(stack<char> &pilha, stack<double> &fila)
         }
         start++;
       }
-      fila.push(num);
+      print();
+      enqueue(num, ' ');
     }
   }
+  
+  while(!(stackIndex+1))
+    enqueue(0, pop());
 }
 
 double solve()
@@ -95,17 +135,14 @@ double solve()
   double numA, numB;
   numA = numB = 0;
   char op;
-  stack<char> operand;
-  stack<double> number;
-  toposfix(operand, number);
-  numA = number.top();
-  number.pop();
-  while(!number.empty() && !operand.empty())
+  toposfix();
+  print();
+  numA = dequeue();
+  while(!(queueRear-queueFront) && !stackIndex)
   {
-    numB = number.top();
-    number.pop();
-    op = operand.top();
-    operand.pop();
+    numB = dequeue();
+    op = dequeue();
+
     if(op == '+')
       numA = numA + numB;
     else if(op == '-')
@@ -113,7 +150,7 @@ double solve()
     else if(op == '*')
       numA = numA * numB;
     else if(op == '/')
-      numA = numB / numA;
+      numA = numA / numB;
   }
   return numA;
 }
