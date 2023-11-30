@@ -2,7 +2,7 @@
 
 using namespace std;
 
-char display[] = "2*5+2/1+55 ";
+char display[] = "2.5*1.73+55/2+1 ";
 
 struct fila
 {
@@ -70,14 +70,14 @@ void shiftQueue(int start, double num) {
   int stop = start - 2;
   queue[stop].num = num;
   queue[stop].op = ' ';  
-  while(start >= stop)
+  while(queue[stop].op != '\000')
   {
     queue[stop+1].num = queue[stop+2].num;
     queue[stop+1].op = queue[stop+2].op;
     stop++;
   }
   stop = start - 2;  
-  while(start >= stop)
+  while(queue[stop].op != '\000')
   {
     queue[stop+1].num = queue[stop+2].num;
     queue[stop+1].op = queue[stop+2].op;
@@ -85,6 +85,29 @@ void shiftQueue(int start, double num) {
   }
   queueRear -= 2;
 } 
+
+void empilhar(int start, char *op)
+{
+  if(!isOperator(stack[stackIndex]))
+  {
+    push(display[start]);
+    return;
+  }
+  else
+  {
+    if(isOperator(stack[stackIndex]) < isOperator(display[start]))
+    {
+      push(display[start]);
+      return;
+    }
+    else
+    {
+      *op = pop();
+      enqueue(0, *op);
+      empilhar(start, op);
+    }
+  }
+}
 
 void toposfix() //stack e queue são variaveis globais
 {
@@ -97,22 +120,9 @@ void toposfix() //stack e queue são variaveis globais
 
   while(display[start] != ' ')
   {
-    if(isOperator(display[start]) && isNumber(display[start-1]))//entra se for operador
+    if(isOperator(display[start]) && isNumber(display[start-1]))
     {
-      if(!isOperator(stack[stackIndex]))
-        push(display[start]);
-    
-      else
-      {
-        if(isOperator(stack[stackIndex]) < isOperator(display[start]))
-          push(display[start]);
-        else
-        {
-          op = pop();
-          enqueue(0, op);
-          push(display[start]);
-        }
-      }
+      empilhar(start, &op);
       start++;
     }
     else //entra se for numero
