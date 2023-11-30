@@ -2,6 +2,8 @@
 
 using namespace std;
 
+char display[] = "3+5*2 ";
+
 struct fila
 {
   double num;
@@ -10,39 +12,9 @@ struct fila
 
 char stack[16];
 Fila queue[16];
-int stackIndex = 0;
+int stackIndex = 0; //topo da pilha
 int queueFront = 0;
 int queueRear = 0;
-
-void print(){
-  printf("\n");
- for (int i = queueFront; i < queueRear; i++) {
-    printf("Elemento%d-> Num:%f Opr:%c",i, queue[i].num, queue[i].op);
-    printf("\n");
-  }
-  
-}
-void push(char op) {
-  stack[stackIndex++] = op;
-}
-
-char pop() {
-  return stack[--stackIndex];
-}
-
-void enqueue(double value, char op) {
-  queue[queueRear++].num = value;
-  queue[queueRear++].op = op;
-}
-
-int dequeue() {
-  if (queue[queueFront].op == ' ')
-    return queue[queueFront++].num;  
-  else
-    return queue[queueFront++].op;
-}
-
-char display[] = "2+3+5 ";
 
 int isOperator(char key)
 {
@@ -56,12 +28,49 @@ int isOperator(char key)
 bool isNumber(char c) {
     return c >= '0' && c <= '9' || c == '.';
 }
+
+void push(char op) {
+  if(isOperator(stack[stackIndex]))
+  {
+    stackIndex++;
+    stack[stackIndex] = op;
+  }
+  else
+  {
+    stack[stackIndex] = op;
+  }
+}
+char pop() {
+  char op = stack[stackIndex];
+  if(stackIndex == 0)
+    stack[stackIndex] = ' ';
+  else 
+  {
+    stack[stackIndex] = ' ';
+    stackIndex--;
+  }
+  return op;
+}
+
+void enqueue(double value, char op) {
+  queue[queueRear].num = value;
+  queue[queueRear].op = op;
+  queueRear++;
+}
+
+int dequeue() {
+  if (queue[queueFront].op == ' ')
+    return queue[queueFront++].num;  
+
+  else
+    return queue[queueFront++].op;
+}
  
 void toposfix() //stack e queue são variaveis globais
 {
   int start = 0;
-  char op;
   double num = 0;
+  char op = ' ';
   float decimalPlace = 0.1;
   bool isDecimal = false;
   bool isNegative = false;
@@ -70,7 +79,7 @@ void toposfix() //stack e queue são variaveis globais
   {
     if(isOperator(display[start]) && isNumber(display[start-1]))//entra se for operador
     {
-      if(stackIndex == 0)
+      if(!isOperator(stack[stackIndex]))
         push(display[start]);
     
       else
@@ -79,14 +88,12 @@ void toposfix() //stack e queue são variaveis globais
           push(display[start]);
         else
         {
-          while(!stackIndex && isOperator(stack[stackIndex]) >= isOperator(display[start]))
-            enqueue(0, pop());
-          
+          op = pop();
+          enqueue(0, op);
           push(display[start]);
         }
       }
       start++;
-      print();
     }
     else //entra se for numero
     {
@@ -120,13 +127,15 @@ void toposfix() //stack e queue são variaveis globais
         }
         start++;
       }
-      print();
       enqueue(num, ' ');
     }
   }
   
-  while(!(stackIndex+1))
-    enqueue(0, pop());
+  while(stackIndex)
+  {
+    op = pop();
+    enqueue(0, op);
+  }
 }
 
 double solve()
@@ -136,9 +145,8 @@ double solve()
   numA = numB = 0;
   char op;
   toposfix();
-  print();
-  numA = dequeue();
-  while(!(queueRear-queueFront) && !stackIndex)
+  
+  while(queueRear-queueFront >= 0)
   {
     numB = dequeue();
     op = dequeue();
