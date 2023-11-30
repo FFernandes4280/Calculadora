@@ -2,7 +2,7 @@
 
 using namespace std;
 
-char display[] = "3+5*2 ";
+char display[] = "2*5+2/1+55 ";
 
 struct fila
 {
@@ -66,6 +66,26 @@ int dequeue() {
     return queue[queueFront++].op;
 }
  
+void shiftQueue(int start, double num) {
+  int stop = start - 2;
+  queue[stop].num = num;
+  queue[stop].op = ' ';  
+  while(start >= stop)
+  {
+    queue[stop+1].num = queue[stop+2].num;
+    queue[stop+1].op = queue[stop+2].op;
+    stop++;
+  }
+  stop = start - 2;  
+  while(start >= stop)
+  {
+    queue[stop+1].num = queue[stop+2].num;
+    queue[stop+1].op = queue[stop+2].op;
+    stop++;
+  }
+  queueRear -= 2;
+} 
+
 void toposfix() //stack e queue são variaveis globais
 {
   int start = 0;
@@ -131,7 +151,7 @@ void toposfix() //stack e queue são variaveis globais
     }
   }
   
-  while(stackIndex)
+  while(isOperator(stack[stackIndex]))
   {
     op = pop();
     enqueue(0, op);
@@ -144,23 +164,27 @@ double solve()
   double numA, numB;
   numA = numB = 0;
   char op;
-  toposfix();
-  
-  while(queueRear-queueFront >= 0)
-  {
-    numB = dequeue();
-    op = dequeue();
+  toposfix(); 
+  while(queueRear - queueFront > 1)
+    {
+      start = 0;
+      while(queue[start].op == ' ')
+        start++;
 
-    if(op == '+')
-      numA = numA + numB;
-    else if(op == '-')
-      numA = numA - numB;
-    else if(op == '*')
-      numA = numA * numB;
-    else if(op == '/')
-      numA = numA / numB;
+      numA = queue[start-2].num;
+      numB = queue[start-1].num;
+      op = queue[start].op;
+      if(op == '+')
+        numA = numA + numB;
+      else if(op == '-')
+        numA = numA - numB;
+      else if(op == '*')
+        numA = numA * numB;
+      else if(op == '/')
+        numA = numA / numB;
+    shiftQueue(start, numA);
   }
-  return numA;
+return numA;
 }
 
 int main() {
