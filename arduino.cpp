@@ -17,7 +17,12 @@ int queueRear = 0;
 
 void reset(int clear) {
   memset(display, ' ', sizeof(display));
+  i = 0;
+  stackIndex = 0;
+  queueFront = 0;
+  queueRear = 0;
 }
+
 
 bool isNumber(char key) {
   if (key >= '0' && key <= '9' || key == '.')
@@ -68,7 +73,7 @@ int dequeue() {
     return queue[queueFront++].op;
 }
 
-void shiftQueue(int start, float num) { 
+void shiftQueue(int start, float num) { // Alterado de double para float
   int stop = start - 2;
   queue[stop].num = num;
   queue[stop].op = ' ';
@@ -104,14 +109,13 @@ void empilhar(int start, char *op) {
 
 void toposfix() {
   int start = 0;
-  float num = 0; // Alterado de double para float
+  float num = 0; 
   char op = ' ';
   float decimalPlace = 0.1;
   bool isDecimal = false;
   bool isNegative = false;
 
   while (display[start] != ' ') {
-    lcd.print("66666");
     if (isOperator(display[start]) && isNumber(display[start - 1])) {
       empilhar(start, &op);
       start++;
@@ -154,7 +158,7 @@ void toposfix() {
   }
 }
 
-float solve() { 
+float solve() {
   int start = 0;
   float numA, numB; 
   numA = numB = 0;
@@ -190,11 +194,12 @@ void setup() {
 }
 
 void loop() {
-  float num; // Alterado de double para float
+  float num; 
   if (Serial.available()) {
     char key = Serial.read();
     if (key == '=') {
-      display[i]=' ';
+        display[i] = ' ';
+      lcd.print(key);
       num = solve(); // resolve a operação	
       lcd.clear();
       lcd.setCursor(0, 0);
