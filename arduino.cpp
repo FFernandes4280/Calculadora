@@ -1,6 +1,8 @@
 #include <LiquidCrystal.h>
 
 LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
+int pb = 8;
+int state = 0;
 
 struct fila {
   float num;
@@ -73,7 +75,7 @@ int dequeue() {
     return queue[queueFront++].op;
 }
 
-void shiftQueue(int start, float num) { // Alterado de double para float
+void shiftQueue(int start, float num) { 
   int stop = start - 2;
   queue[stop].num = num;
   queue[stop].op = ' ';
@@ -188,6 +190,7 @@ float solve() {
 void setup() {
   Serial.begin(9600);
 
+  pinMode(pb, INPUT);
   lcd.begin(16, 2);    // inicializa
   lcd.setCursor(0, 0); // coloca o cursor em (0, 0)
   lcd.clear();          // limpa a tela
@@ -195,11 +198,12 @@ void setup() {
 
 void loop() {
   float num; 
-  if (Serial.available()) {
+  state = digitalRead(pb);
+  delay(10);
+  if (Serial.available() || state == HIGH) {
     char key = Serial.read();
     if (key == '=') {
         display[i] = ' ';
-      lcd.print(key);
       num = solve(); // resolve a operação	
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -207,17 +211,17 @@ void loop() {
       lcd.print(num);
       while (num > 0) {
         for (int j = i; j > 0; j--) // shift para a direita
-          display[j] = display[j - 1];
+        display[j] = display[j - 1];
         display[0] = (int)(num) % 10 + '0'; // transcreve a resposta para ser usada nas próximas operações
         num = num / 10;
         i++;
       }
     } else {
-      if (key == 'C') {
+      if (state == HIGH) {
         reset(0);
         lcd.clear();
         lcd.setCursor(0, 0);
-      } else {
+      } else{
         display[i] = key;
         i++;
         lcd.write(key);
